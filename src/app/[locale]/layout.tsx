@@ -1,8 +1,27 @@
-import "./globals.css";
+import "../../app/globals.css";
 // import type { Metadata } from "next";
 import Script from "next/script";
+import { NextIntlClientProvider } from 'next-intl';
+import { notFound } from 'next/navigation';
+import { ReactNode } from 'react';
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export function generateStaticParams() {
+  return [{ locale: 'en' }, { locale: 'ar' }];
+}
+
+export default async function RootLayout({  children,
+  params: { locale }
+}: {
+  children: ReactNode;
+  params: { locale: string };
+}) {
+  let messages;
+  try {
+    messages = (await import(`/messages/${locale}.json`)).default;
+  } catch (error) {
+    console.log(error)
+    notFound();
+  }
   return (
     <html lang="en">
       <head>
@@ -183,7 +202,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               `<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PP5LJVS6" height="0" width="0" style="display:none;visibility:hidden"></iframe>`
               }
           </noscript>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+
           {children}
+          </NextIntlClientProvider>
       </body>
     </html>
   );
